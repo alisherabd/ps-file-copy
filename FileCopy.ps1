@@ -12,10 +12,10 @@ function Copy-Files ([string]$source,[string]$destination){
         else {
             #Write-Host $("file " + $_.Name)
             if(Test-Path $($destination + $_.name)){ #if file already exists 
-                Copy-Item $($source + $($_.name)) -Destination $($destination + $("new_"+$_.name)) -Force
+                Copy-Item $($source + $_.name) -Destination $($destination + $("new_"+$_.name)) -Force
             }
             else { # comletly new file
-                Copy-Item $($source + $($_.name)) -Destination $($destination + $($_.name)) -Force
+                Copy-Item $($source + $_.name) -Destination $($destination + $_.name) -Force
             }
         }
     }
