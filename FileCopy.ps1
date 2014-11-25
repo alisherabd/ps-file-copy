@@ -1,5 +1,12 @@
 ﻿$src = "C:\t1\"
-$trg = "C:\t2\" 
+$trg = "C:\t2\"
+
+# open your Windows PowerShell ISE (x86) as Administrator
+#  then execute this command
+#  >Set-ExecutionPolicy RemoteSigned
+# Go to : File>Open  and locate this script
+# update $src and $trg with path that needs to be processed, don't forget to add backslash (\) at the end
+
 
 
 function Copy-Files ([string]$source,[string]$destination){
