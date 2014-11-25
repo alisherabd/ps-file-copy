@@ -5,10 +5,8 @@ $trg = "C:\t2\"
 function Copy-Files ([string]$source,[string]$destination){
     $srcc = Get-childitem $source
     $trgc = Get-childitem $destination
-
     Compare-Object $srcc $trgc -Property Name, Length | Where-Object {$_.SideIndicator -eq "<=" } | ForEach-Object {
         if($_.Length -eq $null){ # this is new folder folder
-        #Write-Host $("s " + $($source + $_.name) + " d " + $($destination + $_.name))
             Copy-Item $($source + $_.name) $($destination + $_.name) -recurse
         }
         else {
@@ -20,20 +18,19 @@ function Copy-Files ([string]$source,[string]$destination){
                 Copy-Item $($source + $($_.name)) -Destination $($destination + $($_.name)) -Force
             }
         }
-}
+    }
+    Copy-Folders $source $destination
 }
 
 function Copy-Folders ([string]$source,[string]$destination){
     $srcc = Get-childitem $source
     $trgc = Get-childitem $destination
 
-    Compare-Object $srcc $trgc -Property Name, Length | Where-Object {$_.SideIndicator -eq "<="} | ForEach-Object {
+    Compare-Object $srcc $trgc -Property FullName, Length,Name | Where-Object {$_.SideIndicator -eq "<=" -and $_.Length -eq $null} |ForEach-Object {
         
-        Write-Host $($_.SideIndicator)
-        #Write-Host $($_.name)
-        
-
-        #Copy-Item "C:\Folder1\$($_.name)" -Destination "C:\Folder3" -Force
+    if(Test-Path $($destination + $_.name)){ #existing folder
+        Copy-Files $($_.Fullname+"\") $($destination + $_.Name+"\")
+    }
 }
 }
 
