@@ -7,12 +7,6 @@ $trg = "C:\t2\"
 # Go to : File>Open  and locate this script
 # update $src and $trg with path that needs to be processed, don't forget to add backslash (\) at the end
 # Get-childitem C:\t1 | fl -Property *
-function Convert-DateString ([String]$Date)
-{
-    $theDateTimeObject = ([datetime]::ParseExact($Date,"MM/dd/yyyy h:mm:ss tt",$null))
-    $temp =  $theDateTimeObject.month.toString() +"-"+ $theDateTimeObject.day.toString() + "-" + $theDateTimeObject.year.toString()
-    return $temp
-}
 
 function Copy-Files ([string]$source,[string]$destination){
     $srcc = Get-childitem $source
@@ -29,10 +23,8 @@ function Copy-Files ([string]$source,[string]$destination){
         else {
             #Write-Host $("file " + $_.Name)
         if(Test-Path $($destination + $_.name)){ #if file already exists
-            $temp = $_.LastWriteTime
-            $date = Convert-DateString $temp.toString()
             #Write-Host $_.LastWriteTime
-            Copy-Item $($source + $_.name) -Destination $($destination + $($_.BaseName + "_" + $date + $_.Extension)) -Force
+            Copy-Item $($source + $_.name) -Destination $($destination + $($_.BaseName + "_" + ($_ | Select-Object -ExpandProperty LastWriteTime).ToString("MM-dd-yyyy") + $_.Extension)) -Force
         }
         else { # comletly new file
             Copy-Item $($source + $_.name) -Destination $($destination + $_.name) -Force
@@ -41,6 +33,12 @@ function Copy-Files ([string]$source,[string]$destination){
     }
     
     }
+
+    if($trgc.count -eq 0 -and $srcc.count -ne 0) { # if source is not empty
+
+            Copy-Item $($source +"\*") $destination -Force -recurse
+    }
+
 
    
     Copy-Folders $source $destination
@@ -61,6 +59,8 @@ function Copy-Folders ([string]$source,[string]$destination){
     }
 }
 }
+
+
 
 Copy-Files $src $trg
 #Convert-DateString 11/25/2014 5:50:52 PM
