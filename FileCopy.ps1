@@ -13,19 +13,17 @@ function Copy-Files ([string]$source,[string]$destination){
     $trgc = Get-childitem $destination
 
    if($srcc.count -ne 0 -and $trgc.count -ne 0 ){
-     Compare-Object $srcc $trgc -Property Name, Extension, LastWriteTime,BaseName, Attributes | Where-Object {$_.SideIndicator -eq "<=" } | ForEach-Object {
+     Compare-Object $srcc $trgc -Property Name, Extension, LastWriteTime,BaseName,PSIsContainer | Where-Object {$_.SideIndicator -eq "<=" } | ForEach-Object {
         
-         if($_.PSIsContainer){ # this is folder (non exists)
-            Copy-Item $($source + $_.name) $($destination + $_.name) -recurse
-        }
-        else {
-            #Write-Host $("file " + $_.Name)
+         #if($_.PSIsContainer){ # this is folder (non exists)
+            #Copy-Item $($source + $_.name) $($destination + $_.name) -recurse -force -ea SilentlyContinue
+        #}
+        if(-Not $_.PSIsContainer) {
         if(Test-Path $($destination + $_.name)){ #if file already exists
-            #Write-Host $_.LastWriteTime
-            Copy-Item $($source + $_.name) -Destination $($destination + $($_.BaseName + "_" + ($_ | Select-Object -ExpandProperty LastWriteTime).ToString("MM-dd-yyyy") + $_.Extension)) -Force
+            Copy-Item $($source + $_.name) -Destination $($destination + $($_.BaseName + "_" + ($_ | Select-Object -ExpandProperty LastWriteTime).ToString("MM-dd-yyyy") + $_.Extension)) -force -ea SilentlyContinue
         }
         else { # comletly new file
-            Copy-Item $($source + $_.name) -Destination $($destination + $_.name) -Force
+            Copy-Item $($source + $_.name) -Destination $($destination + $_.name) -force -ea SilentlyContinue
         }
         }
     }
@@ -41,9 +39,10 @@ function Copy-Folders ([string]$source,[string]$destination){
     if($trgc.count -ne 0)
     {
     # this is to find exiting folders
-    Compare-Object $srcc $trgc -Property FullName, Length,Name | Where-Object {$_.SideIndicator -eq "<=" -and $_.Length -eq $null} |ForEach-Object {
+    Compare-Object $srcc $trgc -Property FullName,Name,PSIsContainer | Where-Object {$_.SideIndicator -eq "<=" -and $_.PSIsContainer -eq $true} |ForEach-Object {
           if(Test-Path $($destination + $_.name)){ #existing folder
-              Copy-Files $($_.Fullname+"\") $($destination + $_.Name+"\")
+                #Write-Host $($_.Fullname+"\") +"  --  "+$($destination + $_.Name+"\") 
+             Copy-Files $($_.Fullname+"\") $($destination + $_.Name+"\") 
            }
         }
     }
@@ -56,6 +55,10 @@ function Copy-Folders ([string]$source,[string]$destination){
                     Copy-Item $($source + $f.name) $($destination) -recurse -force -ea SilentlyContinue
                } 
             } 
+            else {
+                
+                Copy-Item $($source + $f.name) $($destination + $f.name) -recurse -force -ea SilentlyContinue
+            }
                     
         }
        
