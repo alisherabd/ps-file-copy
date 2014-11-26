@@ -11,13 +11,11 @@ $trg = "C:\t2\"
 function Copy-Files ([string]$source,[string]$destination){
     $srcc = Get-childitem $source
     $trgc = Get-childitem $destination
-   
-    if($trgc.count -ne 0) #
-    {
 
-     Compare-Object $srcc $trgc -Property Name, Length, Extension, LastWriteTime,BaseName | Where-Object {$_.SideIndicator -eq "<=" } | ForEach-Object {
+   if($srcc.count -ne 0 -and $trgc.count -ne 0 ){
+     Compare-Object $srcc $trgc -Property Name, Extension, LastWriteTime,BaseName, Attributes | Where-Object {$_.SideIndicator -eq "<=" } | ForEach-Object {
         
-        if($_.Length -eq $null){ # this is folder (non exists)
+         if($_.PSIsContainer){ # this is folder (non exists)
             Copy-Item $($source + $_.name) $($destination + $_.name) -recurse
         }
         else {
@@ -31,16 +29,8 @@ function Copy-Files ([string]$source,[string]$destination){
         }
         }
     }
-    
     }
-
-    if($trgc.count -eq 0 -and $srcc.count -ne 0) { # if source is not empty
-
-            Copy-Item $($source +"\*") $destination -Force -recurse
-    }
-
-
-   
+        
     Copy-Folders $source $destination
 }
 
@@ -52,12 +42,26 @@ function Copy-Folders ([string]$source,[string]$destination){
     {
     # this is to find exiting folders
     Compare-Object $srcc $trgc -Property FullName, Length,Name | Where-Object {$_.SideIndicator -eq "<=" -and $_.Length -eq $null} |ForEach-Object {
-        
-    if(Test-Path $($destination + $_.name)){ #existing folder
-        Copy-Files $($_.Fullname+"\") $($destination + $_.Name+"\")
+          if(Test-Path $($destination + $_.name)){ #existing folder
+              Copy-Files $($_.Fullname+"\") $($destination + $_.Name+"\")
+           }
+        }
     }
+    else 
+    {
+        foreach($f in $srcc){
+            #$f  | get-member
+            if($f.PSIsContainer){ #if it is folder
+               if(-Not (Test-Path $($destination + $f.name))){ #not exist folder
+                    Copy-Item $($source + $f.name) $($destination) -recurse -force -ea SilentlyContinue
+               } 
+            } 
+                    
+        }
+       
+    
+    
     }
-}
 }
 
 
