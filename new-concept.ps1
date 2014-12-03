@@ -24,7 +24,8 @@ function Trace-Folder([string]$s,[string]$t){
 
 function Trace-File($s,[string]$t){
         if(Test-Path $t){ #file exist
-            Compare-Object $s.FullName $t | Where-Object {$_.SideIndicator -eq "=>" } | ForEach-Object {
+            $prop = Get-ItemProperty -Path $t
+            if($s.LastWriteTime -ne $prop.LastWriteTime){
                $version = $($s.DirectoryName.Replace($src,$trg) + "\" + $($s.BaseName + "_" + ($s | Select-Object -ExpandProperty LastWriteTime).ToString("MM-dd-yyyy") + $s.Extension))
                Copy-Item $s.FullName  -Destination $version -force -ea SilentlyContinue
                Write-Host "...Versioning File - " $version
